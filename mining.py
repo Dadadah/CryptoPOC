@@ -1,11 +1,14 @@
 import hashlib
 import bcrypt
+import base64
 
 testmessage = "Hello World"
 
 nonce = 0
 count = 0
 totalnonce = 0
+
+difficulty = 4
 
 done = False
 testing = True
@@ -19,10 +22,11 @@ while(not done):
     hash.update(totalmessage)
     hashed = bcrypt.hashpw((hash.hexdigest()).encode('utf-8'), salt)
     vals = hashed.split(b'$')
-    val = list(vals[3][22:])
+    val = base64.b64decode(vals[3][22:] + b'=', './')
+    val = int.from_bytes(val, byteorder='big')
     nonce = nonce + 1
-    if val[0] == 100:
-        testmessage = vals[3][22:]
+    if val % difficulty == 0:
+        print('Hash Found!')
         totalnonce = totalnonce + nonce
         nonce = 0
         count = count + 1

@@ -6,6 +6,7 @@ def hash_val(bytestring):
     hash.update(bytestring)
     return hash.digest()
 
+
 def get_int(bytestring):
     return int.from_bytes(bytestring, byteorder="big")
 
