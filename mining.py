@@ -8,7 +8,7 @@ nonce = 0
 count = 0
 totalnonce = 0
 
-difficulty = 4
+difficulty = 2**5
 
 done = False
 testing = True
