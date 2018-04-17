@@ -2,7 +2,7 @@ import hashlib
 import secrets
 from blum import BlumBlumShub
 import cryptoutil as cu
-from merkeltree import MerkelNode
+from merkletree import MerkleNode
 
 bitlevel = 8
 
@@ -22,7 +22,7 @@ def generate_public_key(privkey):
     return newpubkey
 
 bbs = BlumBlumShub(2**bitlevel, b"I drive a chevrolet movie theater", cu.get_int(cu.hash_val(b"Interior Crocodile Alligator")))
-merkel = MerkelNode(bitlevel)
+merkle = MerkleNode(bitlevel)
 
 for x in range(2**bitlevel):
     privatekey = generate_private_key(2**(bitlevel+1))
@@ -30,13 +30,13 @@ for x in range(2**bitlevel):
     hash = hashlib.sha256()
     for key in publickey:
         hash.update(cu.get_bytes(key))
-    temp = merkel.get_child(x)
+    temp = merkle.get_child(x)
     temp.hash = hash.hexdigest()
     print(temp.hash)
 
-merkel.update_tree()
+merkle.update_tree()
 
-print(merkel.hash)
+print(merkle.hash)
 
 '''
 while True:

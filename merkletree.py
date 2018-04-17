@@ -1,6 +1,6 @@
 import cryptoutil as cu
 
-class MerkelNode(object):
+class MerkleNode(object):
     def __init__(self, depth):
         self.hash = ""
         self.left = None
@@ -9,8 +9,8 @@ class MerkelNode(object):
         if depth < 1:
             raise ValueError("Depth must be positive.")
         if depth > 1:
-            self.left = MerkelNode(depth - 1)
-            self.right = MerkelNode(depth - 1)
+            self.left = MerkleNode(depth - 1)
+            self.right = MerkleNode(depth - 1)
 
 
     def update_tree(self):
