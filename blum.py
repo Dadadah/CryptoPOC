@@ -1,86 +1,52 @@
 import sys
 import random
-import primes
 import hashlib
+import gmpy2
 
 class BlumBlumShub(object):
-
-
-    def getPrime(self, bits=256):
-        """
-        Generate appropriate prime number for use in Blum-Blum-Shub.
-
-        This generates the appropriate primes (p = 3 mod 4) needed to compute the
-        "n-value" for Blum-Blum-Shub.
-
-        bits - Number of bits in prime
-
-        """
+    def getPrime(self, bits):
         while True:
-            p = primes.bigppr(bits)
-            if p & 3 == 3:
-                return p
+            prime = random.getrandbits(bits) | 1
+            if gmpy2.is_strong_bpsw_prp(prime):
+                if prime & 3 == 3:
+                    return prime
 
-    def generateN(self, bits=512):
-        """
-        This generates the "n value" for use in the Blum-Blum-Shub algorithm.
 
-        bits - The number of bits of security
-        """
-
-        p = self.getPrime(int(bits/2))
-        while 1:
-            q = self.getPrime(int(bits/2))
+    def generateVals(self, bits):
+        self.p = self.getPrime(int(bits/2))
+        while True:
+            self.q = self.getPrime(int(bits/2))
             # make sure p != q (almost always true, but just in case, check)
-            if p != q:
-                return p * q
+            if self.p != self.q:
+                self.m = self.p * self.q
+                return
 
-    def __init__(self, bits, initialseed):
-        """
-        Constructor, specifing bits for n.
 
-        bits - number of bits
-        """
-        self.n = self.generateN(bits)
-        # print "n set to " + repr(self.n)
-        length = self.bitLen(self.n)
+    def __init__(self, bits, primeseed, initialseed):
+        random.seed(primeseed)
+        self.generateVals(bits)
         self.setSeed(initialseed)
 
+
     def setSeed(self, seed):
-        """
-        Sets or resets the seed value and internal state.
+        print(seed)
+        while seed < 3 or seed%self.p == 0 or seed%self.q == 0:
+            hash = hashlib.sha256()
+            hash.update(seed.to_bytes(byteorder="little"))
+            seed = int.from_bytes(hash.digest(), byteorder="big")
+        print(seed)
+        self.state = seed
 
-        seed -The new seed
-        """
 
-        self.state = seed % self.n
+    def next(self):
+        self.state = (self.state**2) % self.m
+        return self.state
 
-    def bitLen(self, x):
-        " Get the bit lengh of a positive number"
-        assert x > 0
-        q = 0
-        while x:
-            q += 1
-            x >>= 1
-        return q
-
-    def next(self, numBits):
-        "Returns up to numBit random bits"
-
-        result = 0
-        for i in range(numBits):
-            self.state = (self.state**2) % self.n
-            result = (result << 1) | (self.state&1)
-
-        return result
 
 if __name__ == "__main__":
-
     hash = hashlib.sha256()
     hash.update(b"Interior Crocodile Alligator")
-    bbs = BlumBlumShub(128, int.from_bytes(hash.digest(), byteorder="big"));
-
-    #print "Generating 10 numbers"
+    bbs = BlumBlumShub(256, b"I drive a chevrolet movie theater", int.from_bytes(hash.digest(), byteorder="big"));
 
     for i in range (256):
-        print(bbs.next(256))
+        print(bbs.next())
