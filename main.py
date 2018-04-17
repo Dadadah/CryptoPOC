@@ -5,6 +5,7 @@ import cryptoutil as cu
 from merkletree import MerkleNode
 
 bitlevel = 8
+security = 256
 
 
 def generate_private_key(x):
@@ -21,18 +22,17 @@ def generate_public_key(privkey):
         newpubkey.append(cu.get_int(cu.hash_val(cu.get_bytes(privkey[x]))))
     return newpubkey
 
-bbs = BlumBlumShub(2**bitlevel, b"I drive a chevrolet movie theater", cu.get_int(cu.hash_val(b"Interior Crocodile Alligator")))
+bbs = BlumBlumShub(security, b"I drive a chevrolet movie theater", cu.get_int(cu.hash_val(b"Interior Crocodile Alligator")))
 merkle = MerkleNode(bitlevel)
 
 for x in range(2**bitlevel):
-    privatekey = generate_private_key(2**(bitlevel+1))
+    privatekey = generate_private_key(security*2)
     publickey = generate_public_key(privatekey)
     hash = hashlib.sha256()
     for key in publickey:
         hash.update(cu.get_bytes(key))
     temp = merkle.get_child(x)
     temp.hash = hash.hexdigest()
-    print(temp.hash)
 
 merkle.update_tree()
 
