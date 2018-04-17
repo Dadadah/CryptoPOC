@@ -1,47 +1,50 @@
 import hashlib
 import secrets
+from blum import BlumBlumShub
+import cryptoutil as cu
+from merkeltree import MerkelNode
 
-def hash_val(bytestring):
-    hash = hashlib.sha256()
-    hash.update(bytestring)
-    return hash.digest()
-
-
-def get_int(bytestring):
-    return int.from_bytes(bytestring, byteorder="big")
+bitlevel = 8
 
 
 def generate_private_key(x):
+    global bbs
     newprivkey = []
     for x in range(x):
-        newprivkey.append(secrets.randbits(256))
+        newprivkey.append(bbs.next())
     return newprivkey
 
 
 def generate_public_key(privkey):
     newpubkey = []
     for x in range(len(privkey)):
-        newpubkey.append(get_int(hash_val(privkey[x].to_bytes(32, byteorder="big"))))
+        newpubkey.append(cu.get_int(cu.hash_val(cu.get_bytes(privkey[x]))))
     return newpubkey
 
+bbs = BlumBlumShub(2**bitlevel, b"I drive a chevrolet movie theater", cu.get_int(cu.hash_val(b"Interior Crocodile Alligator")))
+merkel = MerkelNode(bitlevel)
 
-privatekey = generate_private_key(512)
-publickey = generate_public_key(privatekey)
+for x in range(2**bitlevel):
+    privatekey = generate_private_key(2**(bitlevel+1))
+    publickey = generate_public_key(privatekey)
+    hash = hashlib.sha256()
+    for key in publickey:
+        hash.update(cu.get_bytes(key))
+    temp = merkel.get_child(x)
+    temp.hash = hash.hexdigest()
+    print(temp.hash)
 
-print('BEGIN PRIVATE KEY')
-print(privatekey)
-print('END PRIVATE KEY')
-print('BEGIN PUBLIC KEY')
-print(publickey)
-print('END PUBLIC KEY')
+merkel.update_tree()
 
+print(merkel.hash)
 
+'''
 while True:
     val = input()
-    newdigest = hash_val(val.encode('utf-8'))
+    newdigest = cu.hash_val(val.encode('utf-8'))
     print('Message: ' + val)
     print('Digest: ' + str(newdigest))
-    intrep = get_int(newdigest)
+    intrep = cu.get_int(newdigest)
     sig = []
     for x in range(256):
         select = 1 if (intrep & (1 << x)) else 0
@@ -55,5 +58,6 @@ while True:
         verification.append(publickey[x*2 + select])
     test = []
     for x in range(256):
-        test.append(get_int(hash_val(sig[x].to_bytes(32, byteorder="big"))))
+        test.append(cu.get_int(cu.hash_val(cu.get_bytes(sig[x]))))
     print('Transaction verified?: ' + str(verification == test))
+'''

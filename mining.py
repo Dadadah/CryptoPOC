@@ -1,6 +1,7 @@
 import hashlib
 import bcrypt
 import base64
+import cryptoutil as cu
 
 testmessage = "Hello World"
 
@@ -16,14 +17,12 @@ testing = True
 salt = bcrypt.gensalt(12)
 
 while(not done):
-    hash = hashlib.sha256()
     totalmessage = str(testmessage) + str(nonce)
     totalmessage = totalmessage.encode('utf-8')
-    hash.update(totalmessage)
-    hashed = bcrypt.hashpw((hash.hexdigest()).encode('utf-8'), salt)
+    hashed = bcrypt.hashpw((cu.hash_hex_val(totalmessage)).encode('utf-8'), salt)
     vals = hashed.split(b'$')
     val = base64.b64decode(vals[3][22:] + b'=', './')
-    val = int.from_bytes(val, byteorder='big')
+    val = cu.get_int(val)
     nonce = nonce + 1
     if val % difficulty == 0:
         print('Hash Found!')

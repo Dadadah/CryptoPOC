@@ -2,6 +2,7 @@ import sys
 import random
 import hashlib
 import gmpy2
+import cryptoutil as cu
 
 class BlumBlumShub(object):
     def getPrime(self, bits):
@@ -29,12 +30,8 @@ class BlumBlumShub(object):
 
 
     def setSeed(self, seed):
-        print(seed)
         while seed < 3 or seed%self.p == 0 or seed%self.q == 0:
-            hash = hashlib.sha256()
-            hash.update(seed.to_bytes(byteorder="little"))
-            seed = int.from_bytes(hash.digest(), byteorder="big")
-        print(seed)
+            seed = cu.get_int(cu.hash_val(cu.get_bytes(seed)))
         self.state = seed
 
 
@@ -44,9 +41,7 @@ class BlumBlumShub(object):
 
 
 if __name__ == "__main__":
-    hash = hashlib.sha256()
-    hash.update(b"Interior Crocodile Alligator")
-    bbs = BlumBlumShub(256, b"I drive a chevrolet movie theater", int.from_bytes(hash.digest(), byteorder="big"));
+    bbs = BlumBlumShub(256, b"I drive a chevrolet movie theater", cu.get_int(cu.hash_val(b"Interior Crocodile Alligator")));
 
     for i in range (256):
         print(bbs.next())
